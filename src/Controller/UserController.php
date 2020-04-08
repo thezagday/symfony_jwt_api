@@ -16,6 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class UserController extends AbstractController
 {
+    const ROLE_ADMIN = 'ROLE_ADMIN';
+
     /**
      * @var UserRepository
     */
@@ -89,7 +91,7 @@ class UserController extends AbstractController
      * @param UserPasswordEncoderInterface $encoder
      * @return JsonResponse
      */
-    public function update($id, Request $request, UserPasswordEncoderInterface $encoder): JsonResponse
+    public function update(int $id, Request $request, UserPasswordEncoderInterface $encoder): JsonResponse
     {
         if ($id != $this->getUser()->getId()) {
             return new JsonResponse(
@@ -126,15 +128,11 @@ class UserController extends AbstractController
      * @param int $id
      * @return JsonResponse
      */
-    public function delete($id): JsonResponse
+    public function delete(int $id): JsonResponse
     {
-        $user = $this->userRepository->findOneBy(['id' => $id]);
+        $this->denyAccessUnlessGranted(self::ROLE_ADMIN);
 
-        $this->denyAccessUnlessGranted(
-            'ROLE_ADMIN',
-            $user,
-            'Unable to access this page!'
-        );
+        $user = $this->userRepository->findOneBy(['id' => $id]);
 
         try {
             $this->userRepository->removeUser($user);
